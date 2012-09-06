@@ -9,8 +9,6 @@ end
 
 class Sheetos::Reader
 
-  @@converter = Sheetos::Converter
-
   attr_reader :separator
 
   def initialize(file, headers)
@@ -67,9 +65,8 @@ class Sheetos::Reader
 
     File.delete(@file) if @file[/tmp/]
 
-    if has_header_line
-      table.by_row!.delete(0)
-    end
+
+    table.by_row!.delete(0) if has_header_line
 
     (table.by_col!.count - headers.size).times {table.delete -1}
 
@@ -85,12 +82,12 @@ class Sheetos::Reader
   end
 
   def have_converters_for?(headers)
-    (headers - @@converter.types).empty?
+    (headers - Converters.types).empty?
   end
 
   def converters_methods
-    @@converter.types.collect do |c|
-      lambda {|f, info| info.header == c ? @@converter.send(c, f) : f}
+    Converters.types.collect do |c|
+      lambda {|f, info| info.header == c ? Converters.convert(c, f) : f}
     end
   end
 
